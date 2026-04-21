@@ -1,0 +1,119 @@
+/shell cat << 'EOF' > router_test_report.html
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home WiFi Router 自動化測試總結報告</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #2980b9; margin-top: 30px; }
+        .summary-box { background-color: #f8f9fa; border-left: 5px solid #3498db; padding: 15px; border-radius: 4px; margin-bottom: 30px; }
+        .summary-box p { margin: 5px 0; }
+        .highlight { font-weight: bold; color: #2c3e50; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th, td { padding: 12px 15px; border: 1px solid #e2e8f0; text-align: left; }
+        th { background-color: #3498db; color: white; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        tr:hover { background-color: #f1f5f9; }
+        .pass { color: #16a34a; font-weight: bold; background-color: #dcfce7; padding: 4px 8px; border-radius: 4px; }
+        .fail { color: #dc2626; font-weight: bold; background-color: #fee2e2; padding: 4px 8px; border-radius: 4px; }
+        .chart-container { background: white; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <h1>Home WiFi Router 自動化測試總結報告</h1>
+
+    <div class="summary-box">
+        <h2>測試摘要</h2>
+        <p><span class="highlight">硬體版本 (HW_Ver):</span> HW_V2.1 (SN: RT8899A12345)</p>
+        <p><span class="highlight">韌體版本 (FW_Ver):</span> FW_v1.0.4-beta</p>
+        <p><span class="highlight">測試執行時間:</span> 2026-03-27</p>
+        <p><span class="highlight">整體通過率 (Pass Rate):</span> 66.7% (4 Pass / 2 Fail)</p>
+    </div>
+
+    <h2>視覺化數據：壓力測試吞吐量 (Throughput)</h2>
+    <div class="chart-container">
+        <pre class="mermaid">
+        xychart-beta
+            title "壓力測試：5GHz WiFi 雙向吞吐量 (Throughput) 連續 5 次實測"
+            x-axis ["Test 1", "Test 2", "Test 3", "Test 4", "Test 5"]
+            y-axis "Throughput (Mbps)" 0 --> 1000
+            bar [865, 870, 855, 880, 860]
+            line [800, 800, 800, 800, 800]
+        </pre>
+    </div>
+
+    <h2>詳細過程紀錄表</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>測試項 (Test Item)</th>
+                <th>判斷標準 (Criteria)</th>
+                <th>實測數值 (Actual)</th>
+                <th>判定 (Result)</th>
+                <th>關聯 Log (Artifacts)</th>
+                <th>QA 分析評論 (Comments)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Connectivity-01: DHCP 獲取速度</td>
+                <td>IP 獲取時間 &lt; 5 秒</td>
+                <td>2.1 秒</td>
+                <td><span class="pass">Pass</span></td>
+                <td><code>dhcp_dora.pcap</code></td>
+                <td>派發速度優良，無延遲現象。</td>
+            </tr>
+            <tr>
+                <td>Connectivity-02: RSSI 訊號強度</td>
+                <td>距離 3 公尺 RSSI &gt; -60dBm</td>
+                <td>-45dBm</td>
+                <td><span class="pass">Pass</span></td>
+                <td><code>wifi_scan.log</code></td>
+                <td>訊號涵蓋符合 802.11ax 預期。</td>
+            </tr>
+            <tr>
+                <td>Stress-01: 5GHz 雙向吞吐量</td>
+                <td>吞吐量 &gt; Spec 值的 80% (800Mbps)</td>
+                <td>865 Mbps</td>
+                <td><span class="pass">Pass</span></td>
+                <td><code>iperf_stress_5g.json</code></td>
+                <td>達成標準，硬體加速 (NAT Offload) 運作正常。</td>
+            </tr>
+            <tr>
+                <td>Stress-02: 滿載封包遺失率</td>
+                <td>Packet Loss &lt; 0.1%</td>
+                <td>0.8%</td>
+                <td><span class="fail">Fail</span></td>
+                <td><code>iperf_udp_loss.json</code></td>
+                <td>高負載下發生 Queue Drop，需檢查 QoS 設定。</td>
+            </tr>
+            <tr>
+                <td>Reliability-01: 記憶體洩漏監測</td>
+                <td>24H 內可用記憶體下降 &lt; 10%</td>
+                <td>下降 25%</td>
+                <td><span class="fail">Fail</span></td>
+                <td><code>meminfo_24h.log</code></td>
+                <td><b>風險預警</b>：發現潛在 Memory Leak，系統 OOM 風險高。</td>
+            </tr>
+            <tr>
+                <td>Reliability-02: 系統重啟與掉線</td>
+                <td>SSID 不掉線，無 Reboot</td>
+                <td>無發生</td>
+                <td><span class="pass">Pass</span></td>
+                <td><code>dmesg_soak.log</code></td>
+                <td>24小時測試期間系統穩定。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>
+EOF
